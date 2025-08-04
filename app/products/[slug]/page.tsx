@@ -16,8 +16,20 @@ type Params = {
 
 const SingleProductPage = async ({ params }: Params): Promise<JSX.Element> => {
   const query = groq`*[_type == 'product' && slug.current == $slug][0]{
-...
-}`;
+    _id,
+    title,
+    description,
+    price,
+    row_price,
+    ratings,
+    reviews,
+    image,
+    slug,
+    category,
+    Brand,
+    quantity,
+    New_arrivals
+  }`;
   const product: ProductData = await client.fetch(query, { slug: params.slug });
 
   const bestSeller = await getBestSellerData();
@@ -52,29 +64,31 @@ const SingleProductPage = async ({ params }: Params): Promise<JSX.Element> => {
             {/* Pricing */}
             <div className="flex flex-wrap items-center gap-4">
               <FormattedPrice
-                price={product.row_price}
+                price={product.row_price || product.price}
                 className="line-through text-gray-400 text-lg"
               />
               <FormattedPrice
                 price={product.price}
                 className="text-3xl text-orange-600 font-bold"
               />
-              <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-                You save
-                <FormattedPrice
-                  price={product.row_price - product.price}
-                  className="inline ml-1"
-                />
-              </span>
+              {product.row_price && product.row_price > product.price && (
+                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                  You save
+                  <FormattedPrice
+                    price={product.row_price - product.price}
+                    className="inline ml-1"
+                  />
+                </span>
+              )}
             </div>
 
             {/* Ratings */}
             <div className="flex items-center gap-1">
               {Array.from({ length: 5 }).map((_, index) => {
-                const filled = index + 1 <= Math.floor(product.ratings);
+                const filled = index + 1 <= Math.floor(product.ratings || 0);
                 const halfFilled =
-                  index + 1 > Math.floor(product.ratings) &&
-                  index + 1 < Math.ceil(product.ratings);
+                  index + 1 > Math.floor(product.ratings || 0) &&
+                  index + 1 < Math.ceil(product.ratings || 0);
                 return (
                   <span
                     key={index}
@@ -91,7 +105,7 @@ const SingleProductPage = async ({ params }: Params): Promise<JSX.Element> => {
                 );
               })}
               <span className="ml-2 text-gray-500 text-sm">
-                ({product.reviews || 5} customer reviews)
+                ({product.reviews || 0} customer reviews)
               </span>
             </div>
 
