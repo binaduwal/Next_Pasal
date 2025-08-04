@@ -10,11 +10,15 @@ import Image from "next/image";
 import React from "react";
 import { IoStar } from "react-icons/io5";
 
+type Params = {
+  slug: string;
+};
+
 const SingleProductPage = async ({
   params,
 }: {
-  params: { slug: string };
-}) => {
+  params: Params;
+}): Promise<JSX.Element> => {
   const query = groq`*[_type == 'product' && slug.current == $slug][0]{...}`;
   const product: ProductData = await client.fetch(query, { slug: params.slug });
 
@@ -28,7 +32,7 @@ const SingleProductPage = async ({
       {/* Product Detail Section */}
       <div className="flex flex-col md:flex-row gap-10 mb-20 mt-10">
         {/* Product Image */}
-        <div className=" w-[500px] sm:text-wrap top-24">
+        <div className="w-[500px] sm:text-wrap top-24">
           {product?.image && (
             <Image
               src={urlFor(product.image).url()}
