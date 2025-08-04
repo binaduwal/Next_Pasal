@@ -1,5 +1,5 @@
 import { ProductData } from "@/type";
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface UserInfo {
   id: string;
@@ -16,6 +16,7 @@ interface ShopperState {
   wishList: ProductData[];
   userInfo: UserInfo | null;
 }
+
 const initialState: ShopperState = {
   cart: [],
   wishList: [],
@@ -26,32 +27,32 @@ export const shopperSlice = createSlice({
   name: "shoppers",
   initialState,
   reducers: {
-    addToCart: (state, action) => {
+    addToCart: (state, action: PayloadAction<ProductData>) => {
       const existingProduct = state.cart.find(
         (product) => product._id === action.payload._id
       );
       if (existingProduct) {
         existingProduct.quantity += 1;
       } else {
-    state.cart.push({ ...action.payload, quantity: 1 });
+        state.cart.push({ ...action.payload, quantity: 1 });
       }
     },
 
-removeFromCart: (state, action) => {
-  const productId = action.payload; 
-  const existingProduct = state.cart.find(
-    (product) => product._id === productId
-  );
-  if (existingProduct) {
-    if (existingProduct.quantity > 1) {
-      existingProduct.quantity -= 1;
-    } else {
-      state.cart = state.cart.filter((product) => product._id !== productId);
-    }
-  }
-},
+    removeFromCart: (state, action: PayloadAction<string>) => {
+      const productId = action.payload;
+      const existingProduct = state.cart.find(
+        (product) => product._id === productId
+      );
+      if (existingProduct) {
+        if (existingProduct.quantity > 1) {
+          existingProduct.quantity -= 1;
+        } else {
+          state.cart = state.cart.filter((product) => product._id !== productId);
+        }
+      }
+    },
 
-    increaseQuantity: (state, action) => {
+    increaseQuantity: (state, action: PayloadAction<string>) => {
       const existingProduct = state.cart.find(
         (product) => product._id === action.payload
       );
@@ -59,40 +60,53 @@ removeFromCart: (state, action) => {
         existingProduct.quantity += 1;
       }
     },
-    decreaseQuantity: (state, action) => {
+
+    decreaseQuantity: (state, action: PayloadAction<string>) => {
       const existingProduct = state.cart.find(
         (product) => product._id === action.payload
       );
-      if (existingProduct) {
+      if (existingProduct && existingProduct.quantity > 1) {
         existingProduct.quantity -= 1;
       }
     },
 
-    resetCart: (state, action) => {
-       console.log("RESETTING CART FROM REDUCER");
+    resetCart: (state) => {
       state.cart = [];
     },
 
-    addToWishlist: (state, action) => {
-      const existingProduct = state.wishList.find(
+    addToWishlist: (state, action: PayloadAction<ProductData>) => {
+      const exists = state.wishList.some(
         (product) => product._id === action.payload._id
       );
-        state.wishList.push(action.payload);ud
-      },
-      removeFromWishlist: (state) => {
-  state.wishList=[]
+      if (!exists) {
+        state.wishList.push(action.payload);
+      }
     },
 
-    addUser: (state, action) => {
-    state.userInfo = action.payload;
+    removeFromWishlist: (state) => {
+      state.wishList = [];
     },
 
-    removeUser:(state)=>{
-      state.userInfo=null
-    }
+    addUser: (state, action: PayloadAction<UserInfo>) => {
+      state.userInfo = action.payload;
+    },
+
+    removeUser: (state) => {
+      state.userInfo = null;
+    },
   },
-}
-);
+});
 
-export const { addToCart,increaseQuantity,decreaseQuantity,removeFromCart,resetCart,addToWishlist,removeFromWishlist,addUser,removeUser } = shopperSlice.actions;
+export const {
+  addToCart,
+  increaseQuantity,
+  decreaseQuantity,
+  removeFromCart,
+  resetCart,
+  addToWishlist,
+  removeFromWishlist,
+  addUser,
+  removeUser,
+} = shopperSlice.actions;
+
 export default shopperSlice.reducer;

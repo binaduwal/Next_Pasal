@@ -1,4 +1,5 @@
 "use client";
+
 import { StoreState } from "@/type";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -6,46 +7,50 @@ import CartItems from "./CartItems";
 import { resetCart } from "@/app/redux/ShopperSlice";
 import EmptyCart from "./EmptyCart";
 import { FormattedPrice } from "./FormattedPrice";
-import { redirect } from "next/navigation";
+import { Session } from "next-auth";
 
-const CartContainer = ({session}:any) => {
+interface CartContainerProps {
+  session: Session | null;
+}
+
+const CartContainer = ({ session }: CartContainerProps) => {
   const dispatch = useDispatch();
-  const [totalAmount,setTotalAmount]=useState(0)
+  const [totalAmount, setTotalAmount] = useState(0);
+
   const handleResetCart = () => {
     const confirmed = window.confirm("Are you sure you want to reset cart?");
     if (confirmed) dispatch(resetCart());
   };
+
   const cartItems = useSelector((state: StoreState) => state?.shoppers?.cart);
   console.log("Cart items", cartItems);
 
-    useEffect(() => {
-      let price = 0;
-  
-      cartItems.map((item) => {
-        price += item?.price * item?.quantity;
-        return price;
-      });
-  
-      setTotalAmount(price);
-    }, [cartItems]);
-    console.log(totalAmount);
-  
-  const handleCheckout = async() => {
-    const response =await fetch("/api/checkout",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
+  useEffect(() => {
+    const price = cartItems.reduce(
+      (acc, item) => acc + item.price * item.quantity,
+      0
+    );
+    setTotalAmount(price);
+  }, [cartItems]);
+
+  const handleCheckout = async () => {
+    const response = await fetch("/api/checkout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-      body:JSON.stringify({item:cartItems,
-        email:session?.user?.email,
+      body: JSON.stringify({
+        item: cartItems,
+        email: session?.user?.email,
       }),
-    })
-    const {url}=await response.json()
-   if(url)
-   {
-    window.location.href=url
-   }
-  }
+    });
+
+    const { url } = await response.json();
+    if (url) {
+      window.location.href = url;
+    }
+  };
+
   return (
     <section className="container mx-auto px-4 pt-22">
       {cartItems?.length > 0 ? (
@@ -69,15 +74,15 @@ const CartContainer = ({session}:any) => {
 
           <button
             onClick={handleResetCart}
-            className="rounded-md bg-red-500 hover:bg-red-600 cursor-pointer text-white p-2 "
+            className="rounded-md bg-red-500 hover:bg-red-600 cursor-pointer text-white p-2"
           >
             Reset Cart
           </button>
 
           <div className="max-w-7xl flex justify-end">
-            <div className="font-medium w-96  p-4 mt-5">
+            <div className="font-medium w-96 p-4 mt-5">
               <h1 className="text-2xl text-end mb-5">Cart totals</h1>
-              <div className="">
+              <div>
                 <p className="border-[1px] border-gray-400 px-4 py-1.5 text-lg font-medium flex justify-between">
                   Subtotal <FormattedPrice price={totalAmount} />
                 </p>
@@ -96,7 +101,7 @@ const CartContainer = ({session}:any) => {
                 </button>
                 {!session?.user && (
                   <p className="text-center text-sm text-orange-500">
-                    Please sign in to make checkout
+                    Please sign in to proceed to checkout
                   </p>
                 )}
               </div>
