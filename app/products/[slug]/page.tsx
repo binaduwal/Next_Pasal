@@ -10,13 +10,11 @@ import Image from "next/image";
 import React from "react";
 import { IoStar } from "react-icons/io5";
 
-interface PageProps {
-  params: {
-    slug: string;
-  };
-}
-
-const SingleProductPage = async ({ params }: PageProps) => {
+const SingleProductPage = async ({
+  params,
+}: {
+  params: { slug: string };
+}) => {
   const query = groq`*[_type == 'product' && slug.current == $slug][0]{...}`;
   const product: ProductData = await client.fetch(query, { slug: params.slug });
 
