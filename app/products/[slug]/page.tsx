@@ -11,15 +11,13 @@ import React from "react";
 import { IoStar } from "react-icons/io5";
 
 type Params = {
-  slug: string;
+  params: { slug: string };
 };
 
-const SingleProductPage = async ({
-  params,
-}: {
-  params: Params;
-}): Promise<JSX.Element> => {
-  const query = groq`*[_type == 'product' && slug.current == $slug][0]{...}`;
+const SingleProductPage = async ({ params }: Params): Promise<JSX.Element> => {
+  const query = groq`*[_type == 'product' && slug.current == $slug][0]{
+...
+}`;
   const product: ProductData = await client.fetch(query, { slug: params.slug });
 
   const bestSeller = await getBestSellerData();
